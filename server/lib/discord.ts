@@ -18,6 +18,12 @@ export class DiscordBot {
       this.isReady = true;
       storage.createLog({ level: "info", message: `Discord bot logged in as ${this.client.user?.tag}` });
       console.log(`Logged in as ${this.client.user?.tag}!`);
+      
+      // Log all guilds the bot is in to help debug membership issues
+      console.log("Bot is currently in these servers:");
+      this.client.guilds.cache.forEach(guild => {
+        console.log(`- ${guild.name} (ID: ${guild.id})`);
+      });
     });
 
     this.client.on("error", (error) => {
