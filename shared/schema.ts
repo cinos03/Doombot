@@ -1,18 +1,40 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+export const settings = pgTable("settings", {
+  id: serial("id").primaryKey(),
+  watchChannelId: text("watch_channel_id").notNull(),
+  summaryChannelId: text("summary_channel_id").notNull(),
+  isActive: boolean("is_active").default(false).notNull(),
+  lastRunAt: timestamp("last_run_at"),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const summaries = pgTable("summaries", {
+  id: serial("id").primaryKey(),
+  content: text("content").notNull(),
+  date: timestamp("date").defaultNow().notNull(),
+  status: text("status").notNull(), // 'success', 'failed'
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export const logs = pgTable("logs", {
+  id: serial("id").primaryKey(),
+  level: text("level").notNull(), // 'info', 'error', 'warn'
+  message: text("message").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const insertSettingsSchema = createInsertSchema(settings).omit({ id: true, lastRunAt: true });
+export const insertSummarySchema = createInsertSchema(summaries).omit({ id: true, date: true });
+export const insertLogSchema = createInsertSchema(logs).omit({ id: true, timestamp: true });
+
+export type Settings = typeof settings.$inferSelect;
+export type InsertSettings = z.infer<typeof insertSettingsSchema>;
+export type Summary = typeof summaries.$inferSelect;
+export type Log = typeof logs.$inferSelect;
+
+export type CreateSettingsRequest = InsertSettings;
+export type UpdateSettingsRequest = Partial<InsertSettings>;
+
+export * from "./models/chat";
+

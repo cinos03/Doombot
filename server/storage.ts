@@ -1,38 +1,67 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { db } from "./db";
+import {
+  settings, summaries, logs,
+  type Settings, type InsertSettings, type UpdateSettingsRequest,
+  type Summary, type InsertSummary,
+  type Log, type InsertLog
+} from "@shared/schema";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getSettings(): Promise<Settings | undefined>;
+  updateSettings(settings: UpdateSettingsRequest): Promise<Settings>;
+  
+  getSummaries(): Promise<Summary[]>;
+  createSummary(summary: InsertSummary): Promise<Summary>;
+  
+  getLogs(): Promise<Log[]>;
+  createLog(log: InsertLog): Promise<Log>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  async getSettings(): Promise<Settings | undefined> {
+    const [setting] = await db.select().from(settings).limit(1);
+    return setting;
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async updateSettings(update: UpdateSettingsRequest): Promise<Settings> {
+    const [existing] = await db.select().from(settings).limit(1);
+    if (existing) {
+      const [updated] = await db.update(settings)
+        .set(update)
+        .where(eq(settings.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create with defaults if missing
+      const [created] = await db.insert(settings)
+        .values({
+          watchChannelId: update.watchChannelId || "",
+          summaryChannelId: update.summaryChannelId || "",
+          isActive: update.isActive ?? false,
+        })
+        .returning();
+      return created;
+    }
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getSummaries(): Promise<Summary[]> {
+    return await db.select().from(summaries).orderBy(desc(summaries.date));
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async createSummary(summary: InsertSummary): Promise<Summary> {
+    const [created] = await db.insert(summaries).values(summary).returning();
+    return created;
+  }
+
+  async getLogs(): Promise<Log[]> {
+    return await db.select().from(logs).orderBy(desc(logs.timestamp)).limit(100);
+  }
+
+  async createLog(log: InsertLog): Promise<Log> {
+    const [created] = await db.insert(logs).values(log).returning();
+    return created;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
