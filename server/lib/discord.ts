@@ -44,7 +44,7 @@ export class DiscordBot {
     if (!this.isReady) throw new Error("Bot is not ready");
     
     try {
-      const channel = await this.client.channels.fetch(channelId);
+      const channel = await this.client.channels.fetch(channelId, { force: true });
       if (!channel || !(channel instanceof TextChannel)) {
         throw new Error(`Channel ${channelId} not found or is not a text channel`);
       }
@@ -63,7 +63,7 @@ export class DiscordBot {
     if (!this.isReady) throw new Error("Bot is not ready");
 
     try {
-      const channel = await this.client.channels.fetch(channelId);
+      const channel = await this.client.channels.fetch(channelId, { force: true });
       if (!channel || !(channel instanceof TextChannel)) {
         throw new Error(`Channel ${channelId} not found or is not a text channel`);
       }
