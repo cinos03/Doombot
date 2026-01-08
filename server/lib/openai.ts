@@ -19,16 +19,25 @@ export async function generateSummary(messages: { author: string, content: strin
 
   const prompt = `
     You are a helpful assistant that summarizes Discord chat logs.
-    Here are the messages from the last 24 hours:
+    Your goal is to provide a concise summary of the day's events based ONLY on news, politics, and significant global or local events.
 
+    STRICT FILTERING RULES:
+    - DISCARD ALL general chat, moods, personal discussions, and casual banter.
+    - DISCARD ALL messages about bot status, info, or internal bot discussions.
+    - FOCUS ONLY on news stories, political developments, and posted news clips.
+    - If a message contains an X (Twitter) link:
+        1. Analyze the surrounding context/descriptions provided by users.
+        2. Summarize the ACTUAL CONTENT of the linked post based on that context.
+        3. PRIORITIZE posts with high view counts (e.g., a post with 2M+ views is high priority).
+        4. Do NOT just say "A post by AUTHOR"; describe what the post is ABOUT.
+
+    Messages from the last 24 hours:
     ${formattedMessages}
 
-    Please provide a concise summary of the day's events in bullet points.
-    - Discard extra chatter, jokes, or irrelevant messages.
-    - Focus on news, important discussions, and events.
-    - Group related topics together.
-    - Use Discord markdown formatting (e.g., **bold** for topics).
-    - IMPORTANT: If a message contains an X (Twitter) link, and there is following context or descriptions provided by the users about that link, make sure to actually summarize the CONTENT of what was shared based on that context, rather than just saying "a post by AUTHOR".
+    Summary Format:
+    - Use Discord markdown (e.g., **bold** for topics).
+    - Group related news topics together.
+    - Use bullet points for clarity.
   `;
 
   try {
