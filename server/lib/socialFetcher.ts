@@ -128,9 +128,9 @@ class RSSBridgeFetcher implements SocialFetcher {
 
 class NitterFetcher implements SocialFetcher {
   private nitterInstances = [
-    "nitter.privacydev.net",
+    "xcancel.com",
     "nitter.poast.org",
-    "nitter.moomoo.me",
+    "nitter.privacyredirect.com",
   ];
 
   async fetchLatest(target: AutopostTarget): Promise<SocialPost | null> {
