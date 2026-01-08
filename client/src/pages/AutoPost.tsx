@@ -32,7 +32,7 @@ import { z } from "zod";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Play, Clock, Radio, Edit2, Star, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Play, Clock, Radio, Edit2, Star, Send } from "lucide-react";
 import { SiX } from "react-icons/si";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
@@ -114,8 +114,20 @@ export default function AutoPostPage() {
         description: data.message 
       });
     },
+  });
+
+  const resendMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest("POST", `/api/autopost/${id}/resend`);
+    },
+    onSuccess: () => {
+      toast({ 
+        title: "Post resent!",
+        description: "The last post was sent to Discord again" 
+      });
+    },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Failed to resend", description: error.message, variant: "destructive" });
     },
   });
 
@@ -461,19 +473,12 @@ export default function AutoPostPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={!target.lastPostId}
-                  onClick={() => {
-                    if (target.lastPostId) {
-                      const url = target.platform === "truthsocial" 
-                        ? `https://truthsocial.com/@${target.handle}/posts/${target.lastPostId}`
-                        : `https://x.com/${target.handle}/status/${target.lastPostId}`;
-                      window.open(url, "_blank");
-                    }
-                  }}
-                  data-testid={`button-lastpost-${target.id}`}
+                  disabled={!target.lastPostId || resendMutation.isPending}
+                  onClick={() => resendMutation.mutate(target.id)}
+                  data-testid={`button-resend-${target.id}`}
                 >
-                  <ExternalLink className="w-3 h-3 mr-1" />
-                  Last Post
+                  <Send className="w-3 h-3 mr-1" />
+                  Resend Last
                 </Button>
                 <Button
                   size="sm"

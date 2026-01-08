@@ -327,5 +327,44 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/autopost/:id/resend", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const target = await storage.getAutopostTarget(id);
+      if (!target) {
+        return res.status(404).json({ message: "AutoPost target not found" });
+      }
+      
+      if (!target.lastPostId) {
+        return res.status(400).json({ message: "No previous post to resend" });
+      }
+
+      const postUrl = target.platform === "truthsocial" 
+        ? `https://truthsocial.com/@${target.handle}/posts/${target.lastPostId}`
+        : `https://x.com/${target.handle}/status/${target.lastPostId}`;
+
+      let message = target.announcementTemplate
+        .replace("{handle}", target.handle)
+        .replace("{platform}", target.platform)
+        .replace("{displayName}", target.displayName);
+
+      if (target.includeEmbed) {
+        message += `\n${postUrl}`;
+      } else {
+        message += `\n<${postUrl}>`;
+      }
+
+      await discordBot.sendMessage(target.discordChannelId, message);
+      await storage.createLog({ 
+        level: "info", 
+        message: `AutoPost: Resent last ${target.platform} post from @${target.handle} to channel` 
+      });
+
+      res.json({ message: "Last post resent to Discord!", success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   return httpServer;
 }
