@@ -38,6 +38,7 @@ export async function generateSummary(messages: { author: string, content: strin
     - Use Discord markdown (e.g., **bold** for topics).
     - Group related news topics together.
     - Use bullet points for clarity.
+    - IMPORTANT: For every X (Twitter) post summarized, you MUST include the original link at the end of that bullet point. To prevent Discord from creating a thumbnail/embed for these links, wrap them in angle brackets like this: <https://x.com/username/status/12345>.
   `;
 
   try {
