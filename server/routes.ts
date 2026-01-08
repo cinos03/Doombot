@@ -104,6 +104,9 @@ async function checkAutopost(target: AutopostTarget) {
       twitterApiIoKey: settings?.twitterApiIoKey,
     });
     
+    // Always update lastCheckedAt, even if no posts found
+    await storage.updateAutopostLastChecked(target.id, target.lastPostId || null);
+    
     if (!post) {
       console.log(`No posts found for ${target.platform}/@${target.handle}`);
       return { found: false };
@@ -134,6 +137,8 @@ async function checkAutopost(target: AutopostTarget) {
 
     return { found: true, postId: post.id };
   } catch (error: any) {
+    // Still update lastCheckedAt on error so user knows check ran
+    await storage.updateAutopostLastChecked(target.id, target.lastPostId || null).catch(() => {});
     await storage.createLog({ 
       level: "error", 
       message: `AutoPost failed for @${target.handle}: ${error.message}` 
