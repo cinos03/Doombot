@@ -74,8 +74,38 @@ export class DiscordBot {
         throw new Error(`Channel ${channelId} not found or is not a text channel`);
       }
 
-      // Split message if too long (Discord limit is 2000)
-      const chunks = content.match(/[\s\S]{1,1900}/g) || [content];
+      // Smart message splitting to avoid breaking links or markdown
+      const MAX_LENGTH = 1900;
+      const chunks: string[] = [];
+      let currentChunk = "";
+
+      const lines = content.split("\n");
+      for (const line of lines) {
+        if (currentChunk.length + line.length + 1 > MAX_LENGTH) {
+          if (currentChunk) {
+            chunks.push(currentChunk.trim());
+            currentChunk = "";
+          }
+          
+          // If a single line is too long, split it carefully
+          if (line.length > MAX_LENGTH) {
+            let remainingLine = line;
+            while (remainingLine.length > 0) {
+              chunks.push(remainingLine.slice(0, MAX_LENGTH));
+              remainingLine = remainingLine.slice(MAX_LENGTH);
+            }
+          } else {
+            currentChunk = line;
+          }
+        } else {
+          currentChunk += (currentChunk ? "\n" : "") + line;
+        }
+      }
+      
+      if (currentChunk) {
+        chunks.push(currentChunk.trim());
+      }
+
       for (const chunk of chunks) {
         await channel.send(chunk);
       }
