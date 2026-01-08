@@ -28,6 +28,7 @@ export async function generateSummary(messages: { author: string, content: strin
     - Focus on news, important discussions, and events.
     - Group related topics together.
     - Use Discord markdown formatting (e.g., **bold** for topics).
+    - IMPORTANT: If a message contains an X (Twitter) link, and there is following context or descriptions provided by the users about that link, make sure to actually summarize the CONTENT of what was shared based on that context, rather than just saying "a post by AUTHOR".
   `;
 
   try {
