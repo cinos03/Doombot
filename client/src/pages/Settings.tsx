@@ -8,17 +8,31 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, Hash, Clock, Bot, Plus, X, Key } from "lucide-react";
+import { Save, Hash, Clock, Bot, Plus, X, Key, BarChart3 } from "lucide-react";
 import { SiX } from "react-icons/si";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+
+interface ApiUsageWithCost {
+  id: number;
+  service: string;
+  callCount: number;
+  month: string;
+  lastUpdated: string;
+  estimatedCost: string;
+}
 
 export default function SettingsPage() {
   const { data: settings, isLoading } = useSettings();
   const { mutate: updateSettings, isPending } = useUpdateSettings();
   const [summaryTimes, setSummaryTimes] = useState<string[]>(["20:00"]);
   const [newTime, setNewTime] = useState("");
+  
+  const { data: apiUsage } = useQuery<ApiUsageWithCost[]>({
+    queryKey: ["/api/usage"],
+  });
 
   const form = useForm<InsertSettings>({
     resolver: zodResolver(insertSettingsSchema),
@@ -403,6 +417,62 @@ export default function SettingsPage() {
                           </FormItem>
                         )}
                       />
+                    </div>
+                  </div>
+
+                  <div className="glass-panel p-6 rounded-2xl space-y-6">
+                    <div className="flex items-center gap-4 pb-6 border-b border-white/5">
+                      <div className="p-3 bg-primary/10 rounded-xl">
+                        <BarChart3 className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold">API Usage</h3>
+                        <p className="text-sm text-muted-foreground">Track your API costs for monitoring services</p>
+                      </div>
+                    </div>
+
+                    {!apiUsage ? (
+                      <div className="space-y-3">
+                        <Skeleton className="h-16 w-full rounded-lg" />
+                        <Skeleton className="h-16 w-full rounded-lg" />
+                      </div>
+                    ) : apiUsage.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No API usage recorded yet. Usage will appear here after AutoPost checks run.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {apiUsage.map((usage) => (
+                          <div 
+                            key={usage.id} 
+                            className="flex items-center justify-between p-4 bg-black/20 rounded-lg"
+                            data-testid={`usage-row-${usage.service}-${usage.month}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="text-sm">
+                                <div className="font-medium">
+                                  {usage.service === "twitterapiio" ? "TwitterAPI.io" : 
+                                   usage.service === "xapi" ? "Official X API" : 
+                                   usage.service}
+                                </div>
+                                <div className="text-muted-foreground">{usage.month}</div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-medium" data-testid={`usage-calls-${usage.service}-${usage.month}`}>
+                                {usage.callCount.toLocaleString()} calls
+                              </div>
+                              <div className="text-sm text-emerald-500" data-testid={`usage-cost-${usage.service}-${usage.month}`}>
+                                ${parseFloat(usage.estimatedCost).toFixed(2)}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="text-sm text-muted-foreground">
+                      Costs are estimated based on $0.15 per 1,000 API calls for TwitterAPI.io.
                     </div>
                   </div>
                 </TabsContent>
