@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import SettingsPage from "@/pages/Settings";
 import HistoryPage from "@/pages/History";
 import AutoPostPage from "@/pages/AutoPost";
+import LogsPage from "@/pages/Logs";
 
 function Router() {
   return (
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/settings" component={SettingsPage} />
       <Route path="/summaries" component={HistoryPage} />
       <Route path="/autopost" component={AutoPostPage} />
+      <Route path="/logs" component={LogsPage} />
       <Route component={NotFound} />
     </Switch>
   );

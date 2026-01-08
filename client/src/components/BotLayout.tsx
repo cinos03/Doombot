@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Settings, History, Bot, Rss } from "lucide-react";
+import { LayoutDashboard, Settings, History, Bot, Rss, ScrollText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BotLayoutProps {
@@ -14,6 +14,7 @@ export function BotLayout({ children }: BotLayoutProps) {
     { href: "/summaries", label: "History", icon: History },
     { href: "/autopost", label: "AutoPost", icon: Rss },
     { href: "/settings", label: "Configuration", icon: Settings },
+    { href: "/logs", label: "Logs", icon: ScrollText },
   ];
 
   return (
