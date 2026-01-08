@@ -41,7 +41,13 @@ async function runSummary() {
     await storage.createLog({ level: "info", message: "Generated summary from OpenAI" });
 
     // 3. Send to Discord
-    await discordBot.sendMessage(settings.summaryChannelId, `**Daily Summary**\n\n${summaryContent}`);
+    const today = new Date().toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    await discordBot.sendMessage(settings.summaryChannelId, `**Daily Summary - ${today}**\n\n${summaryContent}`);
     
     // 4. Save to DB
     await storage.createSummary({
