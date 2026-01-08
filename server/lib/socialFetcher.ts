@@ -35,21 +35,71 @@ class TwitterApiIoFetcher implements SocialFetcher {
         return null;
       }
       
-      const data = await response.json();
+      const responseData = await response.json();
       
-      if (!data.tweets || data.tweets.length === 0) {
+      // TwitterAPI.io returns { status, code, msg, data: { pin_tweet, tweets }, has_next_page, next_cursor }
+      const tweets = responseData.data?.tweets;
+      const pinnedTweet = responseData.data?.pin_tweet;
+      const pinnedTweetId = pinnedTweet?.id;
+      
+      if (!tweets || tweets.length === 0) {
         console.log(`TwitterAPI.io: No tweets found for @${handle}`);
         return null;
       }
       
-      const tweet = data.tweets[0];
+      console.log(`TwitterAPI.io: Got ${tweets.length} tweets for @${handle}, pinned ID: ${pinnedTweetId || 'none'}`);
+      
+      // Find the newest tweet that isn't already posted
+      // Skip pinned tweets and tweets we've already processed
+      const lastPostId = target.lastPostId;
+      let newestTweet = null;
+      
+      for (const tweet of tweets) {
+        // Skip the pinned tweet (it stays at top but isn't chronologically newest)
+        if (pinnedTweetId && tweet.id === pinnedTweetId) {
+          console.log(`TwitterAPI.io: Skipping pinned tweet ${tweet.id}`);
+          continue;
+        }
+        
+        // Skip if this is the exact same as lastPostId (already posted)
+        if (tweet.id === lastPostId) {
+          continue;
+        }
+        
+        // If we have a lastPostId, only return tweets that are newer (higher ID)
+        // Twitter IDs are chronological - higher ID = newer tweet
+        if (lastPostId && BigInt(tweet.id) <= BigInt(lastPostId)) {
+          continue;
+        }
+        
+        // This tweet is newer than what we've posted - use it
+        newestTweet = tweet;
+        break;
+      }
+      
+      // If no new tweets found and no lastPostId, return the most recent non-pinned tweet
+      if (!newestTweet && !lastPostId) {
+        for (const tweet of tweets) {
+          if (!pinnedTweetId || tweet.id !== pinnedTweetId) {
+            newestTweet = tweet;
+            break;
+          }
+        }
+      }
+      
+      if (!newestTweet) {
+        console.log(`TwitterAPI.io: No new tweets for @${handle} (lastPostId: ${lastPostId})`);
+        return null;
+      }
+      
+      console.log(`TwitterAPI.io: Found tweet ${newestTweet.id} for @${handle}`);
       
       return {
-        id: tweet.id,
-        url: tweet.url || `https://x.com/${handle}/status/${tweet.id}`,
-        text: tweet.text || "",
+        id: newestTweet.id,
+        url: newestTweet.url || `https://x.com/${handle}/status/${newestTweet.id}`,
+        text: newestTweet.text || "",
         authorHandle: handle,
-        timestamp: tweet.createdAt ? new Date(tweet.createdAt) : new Date(),
+        timestamp: newestTweet.createdAt ? new Date(newestTweet.createdAt) : new Date(),
       };
     } catch (error) {
       console.error(`Error fetching TwitterAPI.io for @${handle}:`, error);
