@@ -388,6 +388,38 @@ From the dashboard you can:
 
 The AutoPost feature allows you to monitor X (Twitter) and Truth Social accounts and automatically share new posts to designated Discord channels.
 
+### X (Twitter) API Configuration
+
+For reliable Twitter/X post monitoring, you need to configure an API key. The app supports multiple options in priority order:
+
+#### Option 1: TwitterAPI.io (Recommended)
+
+1. Go to [twitterapi.io](https://twitterapi.io)
+2. Sign up (free $0.10 trial available, no credit card required)
+3. Copy your API key
+4. In the dashboard, go to **Settings > X API** tab
+5. Paste your API key in the "TwitterAPI.io API Key" field
+
+**Benefits:**
+- No Twitter developer account needed
+- Works immediately (no approval process)
+- Very affordable: $0.15 per 1,000 tweets (100x cheaper than official X API)
+- High reliability with fast response times
+
+#### Option 2: Official X API (Backup)
+
+1. Go to [developer.x.com](https://developer.x.com/en/portal/dashboard)
+2. Create a project and app (free tier available)
+3. Generate a Bearer Token
+4. In the dashboard, go to **Settings > X API** tab
+5. Paste your Bearer Token in the "X API Bearer Token" field
+
+**Note:** The official X API is only used as a fallback if TwitterAPI.io is not configured.
+
+#### Option 3: Free Alternatives (Fallback)
+
+If neither API is configured, the app attempts to use free services (Nitter, RSSHub). These are often unreliable and may not work for all accounts.
+
 ### How It Works
 
 1. Navigate to the **AutoPost** page in the dashboard
