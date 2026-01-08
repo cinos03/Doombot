@@ -55,7 +55,8 @@ async function runSummary() {
       status: "success"
     });
 
-    await storage.updateSettings({ lastRunAt: new Date() });
+    // 5. Update settings (skip lastRunAt if not in schema)
+    await storage.updateSettings({ isActive: settings.isActive });
   } catch (error: any) {
     await storage.createLog({ level: "error", message: `Scheduled summary failed: ${error.message}` });
     console.error("Scheduled summary failed:", error);
