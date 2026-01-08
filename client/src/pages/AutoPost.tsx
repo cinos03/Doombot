@@ -458,22 +458,23 @@ export default function AutoPostPage() {
                   <Play className="w-3 h-3 mr-1" />
                   Check Now
                 </Button>
-                {target.lastPostId && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!target.lastPostId}
+                  onClick={() => {
+                    if (target.lastPostId) {
                       const url = target.platform === "truthsocial" 
                         ? `https://truthsocial.com/@${target.handle}/posts/${target.lastPostId}`
                         : `https://x.com/${target.handle}/status/${target.lastPostId}`;
                       window.open(url, "_blank");
-                    }}
-                    data-testid={`button-lastpost-${target.id}`}
-                  >
-                    <ExternalLink className="w-3 h-3 mr-1" />
-                    Last Post
-                  </Button>
-                )}
+                    }
+                  }}
+                  data-testid={`button-lastpost-${target.id}`}
+                >
+                  <ExternalLink className="w-3 h-3 mr-1" />
+                  Last Post
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"
