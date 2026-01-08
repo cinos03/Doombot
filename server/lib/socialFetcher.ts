@@ -10,7 +10,76 @@ export interface SocialPost {
 }
 
 export interface SocialFetcher {
-  fetchLatest(target: AutopostTarget): Promise<SocialPost | null>;
+  fetchLatest(target: AutopostTarget, bearerToken?: string | null): Promise<SocialPost | null>;
+}
+
+class XApiFetcher implements SocialFetcher {
+  async fetchLatest(target: AutopostTarget, bearerToken?: string | null): Promise<SocialPost | null> {
+    if (!bearerToken) return null;
+    
+    const handle = target.handle.replace("@", "");
+    
+    try {
+      const userResponse = await fetch(
+        `https://api.x.com/2/users/by/username/${handle}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${bearerToken}`,
+            "User-Agent": "DiscordBot/1.0",
+          },
+        }
+      );
+      
+      if (!userResponse.ok) {
+        const errorText = await userResponse.text();
+        console.error(`X API user lookup failed for @${handle}: ${userResponse.status} - ${errorText}`);
+        return null;
+      }
+      
+      const userData = await userResponse.json();
+      const userId = userData.data?.id;
+      
+      if (!userId) {
+        console.error(`X API: No user ID found for @${handle}`);
+        return null;
+      }
+      
+      const tweetsResponse = await fetch(
+        `https://api.x.com/2/users/${userId}/tweets?max_results=5&tweet.fields=created_at,text&exclude=retweets,replies`,
+        {
+          headers: {
+            "Authorization": `Bearer ${bearerToken}`,
+            "User-Agent": "DiscordBot/1.0",
+          },
+        }
+      );
+      
+      if (!tweetsResponse.ok) {
+        const errorText = await tweetsResponse.text();
+        console.error(`X API tweets fetch failed: ${tweetsResponse.status} - ${errorText}`);
+        return null;
+      }
+      
+      const tweetsData = await tweetsResponse.json();
+      
+      if (!tweetsData.data || tweetsData.data.length === 0) {
+        return null;
+      }
+      
+      const tweet = tweetsData.data[0];
+      
+      return {
+        id: tweet.id,
+        url: `https://x.com/${handle}/status/${tweet.id}`,
+        text: tweet.text || "",
+        authorHandle: handle,
+        timestamp: tweet.created_at ? new Date(tweet.created_at) : new Date(),
+      };
+    } catch (error) {
+      console.error(`Error fetching X API for @${handle}:`, error);
+      return null;
+    }
+  }
 }
 
 class RSSBridgeFetcher implements SocialFetcher {
@@ -166,12 +235,22 @@ class TruthSocialFetcher implements SocialFetcher {
   }
 }
 
+const xApiFetcher = new XApiFetcher();
 const rssBridgeFetcher = new RSSBridgeFetcher();
 const nitterFetcher = new NitterFetcher();
 const truthSocialFetcher = new TruthSocialFetcher();
 
-export async function fetchLatestPost(target: AutopostTarget): Promise<SocialPost | null> {
+export async function fetchLatestPost(target: AutopostTarget, xBearerToken?: string | null): Promise<SocialPost | null> {
   if (target.platform === "twitter" || target.platform === "x") {
+    if (xBearerToken) {
+      const post = await xApiFetcher.fetchLatest(target, xBearerToken);
+      if (post) {
+        console.log(`Successfully fetched tweet via X API for @${target.handle}`);
+        return post;
+      }
+      console.log(`X API fetch failed for @${target.handle}, falling back to alternatives`);
+    }
+    
     let post = await nitterFetcher.fetchLatest(target);
     if (!post) {
       post = await rssBridgeFetcher.fetchLatest(target);

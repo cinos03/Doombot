@@ -11,6 +11,7 @@ export const settings = pgTable("settings", {
   summaryTimes: text("summary_times").array().default(["20:00"]).notNull(),
   aiProvider: text("ai_provider").default("openai").notNull(),
   aiModel: text("ai_model").default("gpt-4o").notNull(),
+  xBearerToken: text("x_bearer_token"),
 });
 
 export const summaries = pgTable("summaries", {
@@ -45,6 +46,7 @@ export const insertSettingsSchema = createInsertSchema(settings).omit({ id: true
   summaryTimes: z.array(z.string()).optional(),
   aiProvider: z.string().optional(),
   aiModel: z.string().optional(),
+  xBearerToken: z.string().nullable().optional(),
 });
 export const insertSummarySchema = createInsertSchema(summaries).omit({ id: true, date: true });
 export const insertLogSchema = createInsertSchema(logs).omit({ id: true, timestamp: true });

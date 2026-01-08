@@ -97,7 +97,10 @@ async function runSummary() {
 
 async function checkAutopost(target: AutopostTarget) {
   try {
-    const post = await fetchLatestPost(target);
+    const settings = await storage.getSettings();
+    const xBearerToken = settings?.xBearerToken;
+    
+    const post = await fetchLatestPost(target, xBearerToken);
     
     if (!post) {
       console.log(`No posts found for ${target.platform}/@${target.handle}`);
