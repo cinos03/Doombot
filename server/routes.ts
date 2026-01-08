@@ -5,6 +5,7 @@ import { api } from "@shared/routes";
 import { discordBot } from "./lib/discord";
 import { generateSummary } from "./lib/openai";
 import { fetchLatestPost } from "./lib/socialFetcher";
+import { consoleLogger } from "./lib/consoleLogger";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerImageRoutes } from "./replit_integrations/image";
 import cron, { ScheduledTask } from "node-cron";
@@ -221,9 +222,9 @@ export async function registerRoutes(
     }
   });
 
-  // Logs API
+  // Logs API - returns console logs instead of database logs
   app.get(api.logs.list.path, async (req, res) => {
-    const logs = await storage.getLogs();
+    const logs = consoleLogger.getLogs();
     res.json(logs);
   });
 
