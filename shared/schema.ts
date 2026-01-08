@@ -8,6 +8,9 @@ export const settings = pgTable("settings", {
   summaryChannelId: text("summary_channel_id").notNull(),
   isActive: boolean("is_active").default(false).notNull(),
   lastRunAt: timestamp("last_run_at"),
+  summaryTimes: text("summary_times").array().default(["20:00"]).notNull(),
+  aiProvider: text("ai_provider").default("openai").notNull(),
+  aiModel: text("ai_model").default("gpt-4o").notNull(),
 });
 
 export const summaries = pgTable("summaries", {
@@ -24,14 +27,20 @@ export const logs = pgTable("logs", {
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 
-export const insertSettingsSchema = createInsertSchema(settings).omit({ id: true, lastRunAt: true });
+export const insertSettingsSchema = createInsertSchema(settings).omit({ id: true, lastRunAt: true }).extend({
+  summaryTimes: z.array(z.string()).optional(),
+  aiProvider: z.string().optional(),
+  aiModel: z.string().optional(),
+});
 export const insertSummarySchema = createInsertSchema(summaries).omit({ id: true, date: true });
 export const insertLogSchema = createInsertSchema(logs).omit({ id: true, timestamp: true });
 
 export type Settings = typeof settings.$inferSelect;
 export type InsertSettings = z.infer<typeof insertSettingsSchema>;
 export type Summary = typeof summaries.$inferSelect;
+export type InsertSummary = z.infer<typeof insertSummarySchema>;
 export type Log = typeof logs.$inferSelect;
+export type InsertLog = z.infer<typeof insertLogSchema>;
 
 export type CreateSettingsRequest = InsertSettings;
 export type UpdateSettingsRequest = Partial<InsertSettings>;

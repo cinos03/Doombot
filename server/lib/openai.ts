@@ -1,12 +1,28 @@
 import OpenAI from "openai";
 
-// The integration automatically sets these env vars
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
+function getAIClient(provider: string = "openai") {
+  if (provider === "custom") {
+    return new OpenAI({
+      apiKey: process.env.CUSTOM_AI_API_KEY || "not-needed",
+      baseURL: process.env.CUSTOM_AI_BASE_URL || "http://localhost:11434/v1",
+    });
+  }
+  
+  return new OpenAI({
+    apiKey: process.env.CUSTOM_OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+    baseURL: process.env.CUSTOM_OPENAI_BASE_URL || process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  });
+}
 
-export async function generateSummary(messages: { author: string, content: string, timestamp: number }[]): Promise<string> {
+interface AISettings {
+  aiProvider?: string;
+  aiModel?: string;
+}
+
+export async function generateSummary(
+  messages: { author: string, content: string, timestamp: number }[],
+  aiSettings?: AISettings
+): Promise<string> {
   if (messages.length === 0) {
     return "No messages found to summarize for today.";
   }
@@ -42,8 +58,12 @@ export async function generateSummary(messages: { author: string, content: strin
   `;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-5.1", // Using the model recommended in the blueprint
+    const provider = aiSettings?.aiProvider || "openai";
+    const model = aiSettings?.aiModel || "gpt-4o";
+    const client = getAIClient(provider);
+
+    const response = await client.chat.completions.create({
+      model: model,
       messages: [
         { role: "system", content: "You are a helpful assistant." },
         { role: "user", content: prompt }
@@ -52,7 +72,7 @@ export async function generateSummary(messages: { author: string, content: strin
 
     return response.choices[0].message.content || "Failed to generate summary.";
   } catch (error: any) {
-    console.error("OpenAI Error:", error);
+    console.error("AI Error:", error);
     throw new Error(`Failed to generate summary: ${error.message}`);
   }
 }

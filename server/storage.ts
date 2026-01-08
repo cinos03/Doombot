@@ -39,6 +39,9 @@ export class DatabaseStorage implements IStorage {
           watchChannelId: update.watchChannelId || "",
           summaryChannelId: update.summaryChannelId || "",
           isActive: update.isActive ?? false,
+          summaryTimes: update.summaryTimes || ["20:00"],
+          aiProvider: update.aiProvider || "openai",
+          aiModel: update.aiModel || "gpt-4o",
         })
         .returning();
       return created;

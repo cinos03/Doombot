@@ -7,13 +7,16 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Save, Hash } from "lucide-react";
+import { Save, Hash, Clock, Bot, Plus, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useEffect, useState } from "react";
 
 export default function SettingsPage() {
   const { data: settings, isLoading } = useSettings();
   const { mutate: updateSettings, isPending } = useUpdateSettings();
+  const [summaryTimes, setSummaryTimes] = useState<string[]>(["20:00"]);
+  const [newTime, setNewTime] = useState("");
 
   const form = useForm<InsertSettings>({
     resolver: zodResolver(insertSettingsSchema),
@@ -21,6 +24,9 @@ export default function SettingsPage() {
       watchChannelId: "",
       summaryChannelId: "",
       isActive: false,
+      summaryTimes: ["20:00"],
+      aiProvider: "openai",
+      aiModel: "gpt-4o",
     },
   });
 
@@ -31,9 +37,28 @@ export default function SettingsPage() {
         watchChannelId: settings.watchChannelId,
         summaryChannelId: settings.summaryChannelId,
         isActive: settings.isActive,
+        summaryTimes: settings.summaryTimes || ["20:00"],
+        aiProvider: settings.aiProvider || "openai",
+        aiModel: settings.aiModel || "gpt-4o",
       });
+      setSummaryTimes(settings.summaryTimes || ["20:00"]);
     }
   }, [settings, form]);
+
+  const addSummaryTime = () => {
+    if (newTime && !summaryTimes.includes(newTime)) {
+      const updated = [...summaryTimes, newTime].sort();
+      setSummaryTimes(updated);
+      form.setValue("summaryTimes", updated);
+      setNewTime("");
+    }
+  };
+
+  const removeSummaryTime = (time: string) => {
+    const updated = summaryTimes.filter(t => t !== time);
+    setSummaryTimes(updated);
+    form.setValue("summaryTimes", updated);
+  };
 
   function onSubmit(data: InsertSettings) {
     updateSettings(data);
@@ -103,6 +128,122 @@ export default function SettingsPage() {
                       </FormControl>
                       <FormDescription>
                         The Discord channel ID where daily summaries will be posted.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="glass-panel p-6 rounded-2xl space-y-6">
+                <div className="flex items-center gap-4 pb-6 border-b border-white/5">
+                  <div className="p-3 bg-primary/10 rounded-xl">
+                    <Clock className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Summary Schedule</h3>
+                    <p className="text-sm text-muted-foreground">Configure when daily summaries are generated</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <FormLabel>Summary Times (24-hour format)</FormLabel>
+                  <div className="flex flex-wrap gap-2">
+                    {summaryTimes.map((time) => (
+                      <div 
+                        key={time}
+                        className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-sm"
+                      >
+                        <Clock className="w-3 h-3" />
+                        {time}
+                        <button
+                          type="button"
+                          onClick={() => removeSummaryTime(time)}
+                          className="hover:text-destructive transition-colors"
+                          data-testid={`button-remove-time-${time}`}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      type="time"
+                      value={newTime}
+                      onChange={(e) => setNewTime(e.target.value)}
+                      className="bg-black/20 border-white/10 focus:border-primary/50 w-40"
+                      data-testid="input-new-time"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={addSummaryTime}
+                      data-testid="button-add-time"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <FormDescription>
+                    Add multiple times for summaries to be generated each day.
+                  </FormDescription>
+                </div>
+              </div>
+
+              <div className="glass-panel p-6 rounded-2xl space-y-6">
+                <div className="flex items-center gap-4 pb-6 border-b border-white/5">
+                  <div className="p-3 bg-primary/10 rounded-xl">
+                    <Bot className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">AI Configuration</h3>
+                    <p className="text-sm text-muted-foreground">Configure AI provider and model settings</p>
+                  </div>
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="aiProvider"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>AI Provider</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="bg-black/20 border-white/10" data-testid="select-ai-provider">
+                            <SelectValue placeholder="Select AI provider" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="openai">OpenAI (Replit Integration)</SelectItem>
+                          <SelectItem value="custom">Custom/Local Server</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        For Replit's built-in OpenAI, select "OpenAI".
+                        For a local server (Ollama, llama.cpp, etc.), select "Custom" and set CUSTOM_AI_BASE_URL and CUSTOM_AI_API_KEY environment variables.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="aiModel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>AI Model</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="gpt-4o" 
+                          {...field} 
+                          className="bg-black/20 border-white/10 focus:border-primary/50"
+                          data-testid="input-ai-model"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        The model name to use (e.g., gpt-4o, claude-3-5-sonnet-20241022).
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

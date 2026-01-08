@@ -6,7 +6,33 @@ import { discordBot } from "./lib/discord";
 import { generateSummary } from "./lib/openai";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerImageRoutes } from "./replit_integrations/image";
-import cron from "node-cron";
+import cron, { ScheduledTask } from "node-cron";
+
+let scheduledTasks: ScheduledTask[] = [];
+
+async function setupScheduledTasks() {
+  // Clear existing tasks
+  scheduledTasks.forEach(task => task.stop());
+  scheduledTasks = [];
+
+  const settings = await storage.getSettings();
+  if (!settings || !settings.summaryTimes || settings.summaryTimes.length === 0) {
+    console.log("No summary times configured, using default 20:00");
+    const task = cron.schedule("0 20 * * *", () => runSummary());
+    scheduledTasks.push(task);
+    return;
+  }
+
+  for (const time of settings.summaryTimes) {
+    const [hour, minute] = time.split(":").map(Number);
+    if (!isNaN(hour) && !isNaN(minute)) {
+      const cronExpression = `${minute} ${hour} * * *`;
+      console.log(`Scheduling summary at ${time} (cron: ${cronExpression})`);
+      const task = cron.schedule(cronExpression, () => runSummary());
+      scheduledTasks.push(task);
+    }
+  }
+}
 
 async function runSummary() {
   const settings = await storage.getSettings();
@@ -33,11 +59,14 @@ async function runSummary() {
     }
 
     // 2. Generate Summary
-    const summaryContent = await generateSummary(messages.map(m => ({
-      author: m.author.username,
-      content: m.content,
-      timestamp: m.createdTimestamp
-    })));
+    const summaryContent = await generateSummary(
+      messages.map(m => ({
+        author: m.author.username,
+        content: m.content,
+        timestamp: m.createdTimestamp
+      })),
+      { aiProvider: settings.aiProvider, aiModel: settings.aiModel }
+    );
     await storage.createLog({ level: "info", message: "Generated summary from OpenAI" });
 
     // 3. Send to Discord
@@ -75,10 +104,8 @@ export async function registerRoutes(
   // Initialize Discord Bot
   discordBot.start();
 
-  // Schedule daily summary at 8 PM (20:00)
-  cron.schedule("0 20 * * *", () => {
-    runSummary();
-  });
+  // Setup scheduled tasks based on settings
+  setupScheduledTasks();
 
   // Settings API
   app.get(api.settings.get.path, async (req, res) => {
@@ -93,6 +120,12 @@ export async function registerRoutes(
     try {
       const input = api.settings.update.input.parse(req.body);
       const updated = await storage.updateSettings(input);
+      
+      // Reschedule tasks if summary times changed
+      if (input.summaryTimes) {
+        await setupScheduledTasks();
+      }
+      
       res.json(updated);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
