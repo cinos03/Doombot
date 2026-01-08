@@ -43,6 +43,15 @@ export const autopostTargets = pgTable("autopost_targets", {
   lastCheckedAt: timestamp("last_checked_at"),
 });
 
+// API usage tracking for cost monitoring
+export const apiUsage = pgTable("api_usage", {
+  id: serial("id").primaryKey(),
+  service: text("service").notNull(), // 'twitterapiio', 'openai', etc.
+  callCount: integer("call_count").default(0).notNull(),
+  month: text("month").notNull(), // Format: '2026-01' for easy grouping
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+});
+
 export const insertSettingsSchema = createInsertSchema(settings).omit({ id: true, lastRunAt: true }).extend({
   summaryTimes: z.array(z.string()).optional(),
   aiProvider: z.string().optional(),
@@ -66,6 +75,7 @@ export type Log = typeof logs.$inferSelect;
 export type InsertLog = z.infer<typeof insertLogSchema>;
 export type AutopostTarget = typeof autopostTargets.$inferSelect;
 export type InsertAutopostTarget = z.infer<typeof insertAutopostTargetSchema>;
+export type ApiUsage = typeof apiUsage.$inferSelect;
 
 export type CreateSettingsRequest = InsertSettings;
 export type UpdateSettingsRequest = Partial<InsertSettings>;

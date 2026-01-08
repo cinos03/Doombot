@@ -1,12 +1,13 @@
 import { db } from "./db";
 import {
-  settings, summaries, logs, autopostTargets,
+  settings, summaries, logs, autopostTargets, apiUsage,
   type Settings, type InsertSettings, type UpdateSettingsRequest,
   type Summary, type InsertSummary,
   type Log, type InsertLog,
-  type AutopostTarget, type InsertAutopostTarget
+  type AutopostTarget, type InsertAutopostTarget,
+  type ApiUsage
 } from "@shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 
 export interface IStorage {
   getSettings(): Promise<Settings | undefined>;
@@ -24,6 +25,10 @@ export interface IStorage {
   updateAutopostTarget(id: number, target: Partial<InsertAutopostTarget>): Promise<AutopostTarget>;
   deleteAutopostTarget(id: number): Promise<void>;
   updateAutopostLastChecked(id: number, lastPostId: string | null): Promise<void>;
+
+  // API usage tracking
+  incrementApiUsage(service: string, count?: number): Promise<void>;
+  getApiUsage(): Promise<ApiUsage[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -107,6 +112,35 @@ export class DatabaseStorage implements IStorage {
         lastCheckedAt: new Date()
       })
       .where(eq(autopostTargets.id, id));
+  }
+
+  async incrementApiUsage(service: string, count: number = 1): Promise<void> {
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    
+    const [existing] = await db.select()
+      .from(apiUsage)
+      .where(and(eq(apiUsage.service, service), eq(apiUsage.month, month)));
+    
+    if (existing) {
+      await db.update(apiUsage)
+        .set({ 
+          callCount: existing.callCount + count,
+          lastUpdated: now
+        })
+        .where(eq(apiUsage.id, existing.id));
+    } else {
+      await db.insert(apiUsage).values({
+        service,
+        callCount: count,
+        month,
+        lastUpdated: now
+      });
+    }
+  }
+
+  async getApiUsage(): Promise<ApiUsage[]> {
+    return await db.select().from(apiUsage).orderBy(desc(apiUsage.month));
   }
 }
 
