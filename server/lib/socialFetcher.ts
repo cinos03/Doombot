@@ -1,4 +1,5 @@
 import type { AutopostTarget } from "@shared/schema";
+import { storage } from "../storage";
 
 export interface SocialPost {
   id: string;
@@ -34,6 +35,11 @@ class TwitterApiIoFetcher implements SocialFetcher {
         console.error(`TwitterAPI.io fetch failed for @${handle}: ${response.status} - ${errorText}`);
         return null;
       }
+      
+      // Track API usage (1 API call made)
+      await storage.incrementApiUsage("twitterapiio", 1).catch(err => 
+        console.error("Failed to track API usage:", err)
+      );
       
       const responseData = await response.json();
       
@@ -131,6 +137,11 @@ class XApiFetcher implements SocialFetcher {
         return null;
       }
       
+      // Track API usage for user lookup
+      await storage.incrementApiUsage("xapi", 1).catch(err => 
+        console.error("Failed to track API usage:", err)
+      );
+      
       const userData = await userResponse.json();
       const userId = userData.data?.id;
       
@@ -154,6 +165,11 @@ class XApiFetcher implements SocialFetcher {
         console.error(`X API tweets fetch failed: ${tweetsResponse.status} - ${errorText}`);
         return null;
       }
+      
+      // Track API usage for tweets fetch
+      await storage.incrementApiUsage("xapi", 1).catch(err => 
+        console.error("Failed to track API usage:", err)
+      );
       
       const tweetsData = await tweetsResponse.json();
       

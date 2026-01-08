@@ -371,5 +371,24 @@ export async function registerRoutes(
     }
   });
 
+  // API Usage Stats
+  app.get("/api/usage", async (req, res) => {
+    try {
+      const usage = await storage.getApiUsage();
+      
+      // Calculate costs (TwitterAPI.io is $0.15 per 1000 tweets)
+      const usageWithCosts = usage.map(u => ({
+        ...u,
+        estimatedCost: u.service === "twitterapiio" 
+          ? (u.callCount * 0.00015).toFixed(4)  // $0.15 / 1000 = $0.00015 per call
+          : "0.0000"
+      }));
+      
+      res.json(usageWithCosts);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   return httpServer;
 }
