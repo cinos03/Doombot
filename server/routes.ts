@@ -98,9 +98,11 @@ async function runSummary() {
 async function checkAutopost(target: AutopostTarget) {
   try {
     const settings = await storage.getSettings();
-    const xBearerToken = settings?.xBearerToken;
     
-    const post = await fetchLatestPost(target, xBearerToken);
+    const post = await fetchLatestPost(target, {
+      xBearerToken: settings?.xBearerToken,
+      twitterApiIoKey: settings?.twitterApiIoKey,
+    });
     
     if (!post) {
       console.log(`No posts found for ${target.platform}/@${target.handle}`);

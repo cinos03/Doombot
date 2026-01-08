@@ -64,6 +64,13 @@ Located in `server/replit_integrations/`:
 - **PostgreSQL**: Primary data store for settings, summaries, logs, and chat history
 - **Discord API**: Bot reads messages from watch channel, posts summaries to summary channel
 - **OpenAI API**: Generates natural language summaries from Discord messages using GPT models
+- **TwitterAPI.io**: Primary source for fetching X/Twitter posts ($0.15/1000 tweets, no auth required)
+- **X API (Official)**: Backup source for Twitter data if TwitterAPI.io not configured
+
+### Twitter/X Data Fetching Priority
+1. **TwitterAPI.io** (Recommended) - Most reliable, cheapest option, no Twitter auth needed
+2. **Official X API** (Backup) - Requires developer account and bearer token
+3. **Free alternatives** (Fallback) - Nitter/RSSHub instances, often unreliable
 
 ### Key NPM Dependencies
 - `discord.js`: Discord bot client library

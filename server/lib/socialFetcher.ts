@@ -13,6 +13,51 @@ export interface SocialFetcher {
   fetchLatest(target: AutopostTarget, bearerToken?: string | null): Promise<SocialPost | null>;
 }
 
+class TwitterApiIoFetcher implements SocialFetcher {
+  async fetchLatest(target: AutopostTarget, apiKey?: string | null): Promise<SocialPost | null> {
+    if (!apiKey) return null;
+    
+    const handle = target.handle.replace("@", "");
+    
+    try {
+      const response = await fetch(
+        `https://api.twitterapi.io/twitter/user/last_tweets?userName=${handle}`,
+        {
+          headers: {
+            "X-API-Key": apiKey,
+          },
+        }
+      );
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`TwitterAPI.io fetch failed for @${handle}: ${response.status} - ${errorText}`);
+        return null;
+      }
+      
+      const data = await response.json();
+      
+      if (!data.tweets || data.tweets.length === 0) {
+        console.log(`TwitterAPI.io: No tweets found for @${handle}`);
+        return null;
+      }
+      
+      const tweet = data.tweets[0];
+      
+      return {
+        id: tweet.id,
+        url: tweet.url || `https://x.com/${handle}/status/${tweet.id}`,
+        text: tweet.text || "",
+        authorHandle: handle,
+        timestamp: tweet.createdAt ? new Date(tweet.createdAt) : new Date(),
+      };
+    } catch (error) {
+      console.error(`Error fetching TwitterAPI.io for @${handle}:`, error);
+      return null;
+    }
+  }
+}
+
 class XApiFetcher implements SocialFetcher {
   async fetchLatest(target: AutopostTarget, bearerToken?: string | null): Promise<SocialPost | null> {
     if (!bearerToken) return null;
@@ -235,22 +280,42 @@ class TruthSocialFetcher implements SocialFetcher {
   }
 }
 
+const twitterApiIoFetcher = new TwitterApiIoFetcher();
 const xApiFetcher = new XApiFetcher();
 const rssBridgeFetcher = new RSSBridgeFetcher();
 const nitterFetcher = new NitterFetcher();
 const truthSocialFetcher = new TruthSocialFetcher();
 
-export async function fetchLatestPost(target: AutopostTarget, xBearerToken?: string | null): Promise<SocialPost | null> {
+export interface FetchOptions {
+  xBearerToken?: string | null;
+  twitterApiIoKey?: string | null;
+}
+
+export async function fetchLatestPost(target: AutopostTarget, options: FetchOptions = {}): Promise<SocialPost | null> {
+  const { xBearerToken, twitterApiIoKey } = options;
+  
   if (target.platform === "twitter" || target.platform === "x") {
+    // Priority 1: TwitterAPI.io (most reliable paid option)
+    if (twitterApiIoKey) {
+      const post = await twitterApiIoFetcher.fetchLatest(target, twitterApiIoKey);
+      if (post) {
+        console.log(`Successfully fetched tweet via TwitterAPI.io for @${target.handle}`);
+        return post;
+      }
+      console.log(`TwitterAPI.io fetch failed for @${target.handle}, trying alternatives`);
+    }
+    
+    // Priority 2: Official X API (if configured)
     if (xBearerToken) {
       const post = await xApiFetcher.fetchLatest(target, xBearerToken);
       if (post) {
         console.log(`Successfully fetched tweet via X API for @${target.handle}`);
         return post;
       }
-      console.log(`X API fetch failed for @${target.handle}, falling back to alternatives`);
+      console.log(`X API fetch failed for @${target.handle}, trying free alternatives`);
     }
     
+    // Priority 3: Free alternatives (Nitter, RSSHub)
     let post = await nitterFetcher.fetchLatest(target);
     if (!post) {
       post = await rssBridgeFetcher.fetchLatest(target);

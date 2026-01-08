@@ -30,6 +30,7 @@ export default function SettingsPage() {
       aiProvider: "openai",
       aiModel: "gpt-4o",
       xBearerToken: "",
+      twitterApiIoKey: "",
     },
   });
 
@@ -43,6 +44,7 @@ export default function SettingsPage() {
         aiProvider: settings.aiProvider || "openai",
         aiModel: settings.aiModel || "gpt-4o",
         xBearerToken: settings.xBearerToken || "",
+        twitterApiIoKey: settings.twitterApiIoKey || "",
       });
       setSummaryTimes(settings.summaryTimes || ["20:00"]);
     }
@@ -314,56 +316,93 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold">X (Twitter) API</h3>
-                        <p className="text-sm text-muted-foreground">Configure official X API for reliable post monitoring</p>
+                        <p className="text-sm text-muted-foreground">Configure API access for reliable post monitoring</p>
                       </div>
                     </div>
 
                     <FormField
                       control={form.control}
-                      name="xBearerToken"
+                      name="twitterApiIoKey"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Bearer Token</FormLabel>
+                          <FormLabel>TwitterAPI.io API Key (Recommended)</FormLabel>
                           <FormControl>
                             <Input 
                               type="password"
-                              placeholder="AAAAAAAAAAAAAAAA..." 
+                              placeholder="your-api-key-here" 
                               {...field}
                               value={field.value || ""}
                               className="bg-black/20 border-white/10 focus:border-primary/50 font-mono"
-                              data-testid="input-x-bearer-token"
+                              data-testid="input-twitter-api-io-key"
                             />
                           </FormControl>
                           <FormDescription>
-                            Your X API Bearer Token for reliable post fetching. Get one from{" "}
+                            Get your API key from{" "}
                             <a 
-                              href="https://developer.x.com/en/portal/dashboard" 
+                              href="https://twitterapi.io" 
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="text-primary underline"
                             >
-                              developer.x.com
+                              twitterapi.io
                             </a>
-                            . Without this, the app uses unreliable free services that may not work for all accounts.
+                            . Cost: $0.15 per 1,000 tweets (100x cheaper than official X API). No Twitter auth required.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
-                    <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                    <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
                       <div className="flex items-start gap-3">
-                        <Key className="w-5 h-5 text-amber-500 mt-0.5" />
+                        <Key className="w-5 h-5 text-emerald-500 mt-0.5" />
                         <div className="text-sm">
-                          <p className="font-medium text-amber-500 mb-1">How to get your Bearer Token:</p>
-                          <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-                            <li>Go to developer.x.com and sign in</li>
-                            <li>Create a new project and app (free tier available)</li>
-                            <li>In your app settings, go to "Keys and Tokens"</li>
-                            <li>Generate a Bearer Token and paste it above</li>
-                          </ol>
+                          <p className="font-medium text-emerald-500 mb-1">Why use TwitterAPI.io?</p>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                            <li>No Twitter developer account or approval needed</li>
+                            <li>Works immediately after signup ($0.10 free trial)</li>
+                            <li>100x cheaper than official X API ($0.15/1000 vs $20/month)</li>
+                            <li>Very reliable with fast response times</li>
+                          </ul>
                         </div>
                       </div>
+                    </div>
+
+                    <div className="border-t border-white/10 pt-6">
+                      <p className="text-sm text-muted-foreground mb-4">Or use the official X API (optional, only as backup):</p>
+                      
+                      <FormField
+                        control={form.control}
+                        name="xBearerToken"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>X API Bearer Token (Backup)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="password"
+                                placeholder="AAAAAAAAAAAAAAAA..." 
+                                {...field}
+                                value={field.value || ""}
+                                className="bg-black/20 border-white/10 focus:border-primary/50 font-mono"
+                                data-testid="input-x-bearer-token"
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Official X API token from{" "}
+                              <a 
+                                href="https://developer.x.com/en/portal/dashboard" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-primary underline"
+                              >
+                                developer.x.com
+                              </a>
+                              . Only used if TwitterAPI.io is not configured.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   </div>
                 </TabsContent>
