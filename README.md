@@ -1,4 +1,4 @@
-# Discord Summarizer Bot - Local Ubuntu Deployment Guide
+# DoomBot - Deployment Guide
 
 A Discord bot that monitors channels for X (Twitter) links and generates AI-powered daily summaries of news, events, and politics.
 
