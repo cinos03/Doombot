@@ -4,11 +4,14 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { discordBot } from "./lib/discord";
 import { generateSummary } from "./lib/openai";
+import { fetchLatestPost } from "./lib/socialFetcher";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerImageRoutes } from "./replit_integrations/image";
 import cron, { ScheduledTask } from "node-cron";
+import type { AutopostTarget } from "@shared/schema";
 
 let scheduledTasks: ScheduledTask[] = [];
+let autopostTasks: Map<number, ScheduledTask> = new Map();
 
 async function setupScheduledTasks() {
   // Clear existing tasks
@@ -92,6 +95,84 @@ async function runSummary() {
   }
 }
 
+async function checkAutopost(target: AutopostTarget) {
+  try {
+    const post = await fetchLatestPost(target);
+    
+    if (!post) {
+      console.log(`No posts found for ${target.platform}/@${target.handle}`);
+      return { found: false };
+    }
+
+    if (target.lastPostId === post.id) {
+      console.log(`No new posts for ${target.platform}/@${target.handle}`);
+      return { found: false };
+    }
+
+    let message = target.announcementTemplate
+      .replace("{handle}", target.handle)
+      .replace("{platform}", target.platform)
+      .replace("{displayName}", target.displayName);
+
+    if (target.includeEmbed) {
+      message += `\n${post.url}`;
+    } else {
+      message += `\n<${post.url}>`;
+    }
+
+    await discordBot.sendMessage(target.discordChannelId, message);
+    await storage.updateAutopostLastChecked(target.id, post.id);
+    await storage.createLog({ 
+      level: "info", 
+      message: `AutoPost: New ${target.platform} post from @${target.handle} shared to channel` 
+    });
+
+    return { found: true, postId: post.id };
+  } catch (error: any) {
+    await storage.createLog({ 
+      level: "error", 
+      message: `AutoPost failed for @${target.handle}: ${error.message}` 
+    });
+    console.error(`AutoPost check failed for ${target.handle}:`, error);
+    return { found: false, error: error.message };
+  }
+}
+
+function scheduleAutopostTarget(target: AutopostTarget) {
+  if (autopostTasks.has(target.id)) {
+    autopostTasks.get(target.id)?.stop();
+    autopostTasks.delete(target.id);
+  }
+
+  if (!target.isActive) {
+    return;
+  }
+
+  const cronExpression = `*/${target.intervalMinutes} * * * *`;
+  console.log(`Scheduling autopost for @${target.handle} every ${target.intervalMinutes} min (cron: ${cronExpression})`);
+  
+  const task = cron.schedule(cronExpression, async () => {
+    const currentTarget = await storage.getAutopostTarget(target.id);
+    if (currentTarget && currentTarget.isActive) {
+      await checkAutopost(currentTarget);
+    }
+  });
+
+  autopostTasks.set(target.id, task);
+}
+
+async function setupAutopostTasks() {
+  autopostTasks.forEach(task => task.stop());
+  autopostTasks.clear();
+
+  const targets = await storage.getAutopostTargets();
+  for (const target of targets) {
+    if (target.isActive) {
+      scheduleAutopostTarget(target);
+    }
+  }
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -106,6 +187,9 @@ export async function registerRoutes(
 
   // Setup scheduled tasks based on settings
   setupScheduledTasks();
+
+  // Setup autopost tasks
+  setupAutopostTasks();
 
   // Settings API
   app.get(api.settings.get.path, async (req, res) => {
@@ -149,6 +233,90 @@ export async function registerRoutes(
     try {
       await runSummary();
       res.json({ message: "Summary process triggered!" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // AutoPost API
+  app.get(api.autopost.list.path, async (req, res) => {
+    const targets = await storage.getAutopostTargets();
+    res.json(targets);
+  });
+
+  app.get("/api/autopost/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const target = await storage.getAutopostTarget(id);
+    if (!target) {
+      return res.status(404).json({ message: "AutoPost target not found" });
+    }
+    res.json(target);
+  });
+
+  app.post(api.autopost.create.path, async (req, res) => {
+    try {
+      const input = api.autopost.create.input.parse(req.body);
+      const created = await storage.createAutopostTarget(input);
+      scheduleAutopostTarget(created);
+      await storage.createLog({ 
+        level: "info", 
+        message: `AutoPost target created: ${input.platform}/@${input.handle}` 
+      });
+      res.json(created);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/autopost/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const existing = await storage.getAutopostTarget(id);
+      if (!existing) {
+        return res.status(404).json({ message: "AutoPost target not found" });
+      }
+      const input = api.autopost.update.input.parse(req.body);
+      const updated = await storage.updateAutopostTarget(id, input);
+      scheduleAutopostTarget(updated);
+      res.json(updated);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/autopost/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const existing = await storage.getAutopostTarget(id);
+      if (!existing) {
+        return res.status(404).json({ message: "AutoPost target not found" });
+      }
+      
+      if (autopostTasks.has(id)) {
+        autopostTasks.get(id)?.stop();
+        autopostTasks.delete(id);
+      }
+      
+      await storage.deleteAutopostTarget(id);
+      await storage.createLog({ 
+        level: "info", 
+        message: `AutoPost target deleted: ${existing.platform}/@${existing.handle}` 
+      });
+      res.json({ message: "AutoPost target deleted" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/autopost/:id/check", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const target = await storage.getAutopostTarget(id);
+      if (!target) {
+        return res.status(404).json({ message: "AutoPost target not found" });
+      }
+      const result = await checkAutopost(target);
+      res.json({ message: result.found ? "New post found and shared!" : "No new posts", found: result.found });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

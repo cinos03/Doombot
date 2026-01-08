@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import SettingsPage from "@/pages/Settings";
 import HistoryPage from "@/pages/History";
+import AutoPostPage from "@/pages/AutoPost";
 
 function Router() {
   return (
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/settings" component={SettingsPage} />
       <Route path="/summaries" component={HistoryPage} />
+      <Route path="/autopost" component={AutoPostPage} />
       <Route component={NotFound} />
     </Switch>
   );

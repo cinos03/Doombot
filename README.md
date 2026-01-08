@@ -380,6 +380,40 @@ From the dashboard you can:
 - Set the AI model to use
 - Enable/disable the bot
 - View logs and summary history
+- Configure AutoPost targets (see below)
+
+---
+
+## AutoPost Feature
+
+The AutoPost feature allows you to monitor X (Twitter) and Truth Social accounts and automatically share new posts to designated Discord channels.
+
+### How It Works
+
+1. Navigate to the **AutoPost** page in the dashboard
+2. Click **Add Account** to configure a new target
+3. Configure:
+   - **Platform**: X (Twitter) or Truth Social
+   - **Handle**: The username to monitor (e.g., realDonaldTrump)
+   - **Display Name**: Friendly name for announcements (e.g., "President Trump")
+   - **Check Interval**: How often to check (5, 10, 15, 30, or 60 minutes)
+   - **Discord Channel ID**: Where to post new content
+   - **Announcement Message**: Custom message template (supports {handle}, {displayName}, {platform} placeholders)
+   - **Include Embed**: Toggle thumbnail preview on/off
+
+### Template Placeholders
+
+Use these in your announcement message:
+- `{handle}` - The account username
+- `{displayName}` - The friendly display name you set
+- `{platform}` - "twitter" or "truthsocial"
+
+Example: `NEW {displayName} POST!` becomes `NEW President Trump POST!`
+
+### Embed vs Plain Link
+
+- **With Embed (default)**: Discord shows a preview with thumbnail
+- **Without Embed**: Link is wrapped in angle brackets `<>` to suppress preview
 
 ---
 

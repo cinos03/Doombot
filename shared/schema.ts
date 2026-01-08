@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -27,6 +27,20 @@ export const logs = pgTable("logs", {
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 
+export const autopostTargets = pgTable("autopost_targets", {
+  id: serial("id").primaryKey(),
+  platform: text("platform").notNull(), // 'twitter' or 'truthsocial'
+  handle: text("handle").notNull(), // username/handle to monitor
+  displayName: text("display_name").notNull(), // friendly name for display
+  intervalMinutes: integer("interval_minutes").default(15).notNull(),
+  discordChannelId: text("discord_channel_id").notNull(),
+  announcementTemplate: text("announcement_template").default("New post from {handle}!").notNull(),
+  includeEmbed: boolean("include_embed").default(true).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  lastPostId: text("last_post_id"), // track last seen post to avoid duplicates
+  lastCheckedAt: timestamp("last_checked_at"),
+});
+
 export const insertSettingsSchema = createInsertSchema(settings).omit({ id: true, lastRunAt: true }).extend({
   summaryTimes: z.array(z.string()).optional(),
   aiProvider: z.string().optional(),
@@ -34,6 +48,11 @@ export const insertSettingsSchema = createInsertSchema(settings).omit({ id: true
 });
 export const insertSummarySchema = createInsertSchema(summaries).omit({ id: true, date: true });
 export const insertLogSchema = createInsertSchema(logs).omit({ id: true, timestamp: true });
+export const insertAutopostTargetSchema = createInsertSchema(autopostTargets).omit({ 
+  id: true, 
+  lastPostId: true, 
+  lastCheckedAt: true 
+});
 
 export type Settings = typeof settings.$inferSelect;
 export type InsertSettings = z.infer<typeof insertSettingsSchema>;
@@ -41,6 +60,8 @@ export type Summary = typeof summaries.$inferSelect;
 export type InsertSummary = z.infer<typeof insertSummarySchema>;
 export type Log = typeof logs.$inferSelect;
 export type InsertLog = z.infer<typeof insertLogSchema>;
+export type AutopostTarget = typeof autopostTargets.$inferSelect;
+export type InsertAutopostTarget = z.infer<typeof insertAutopostTargetSchema>;
 
 export type CreateSettingsRequest = InsertSettings;
 export type UpdateSettingsRequest = Partial<InsertSettings>;

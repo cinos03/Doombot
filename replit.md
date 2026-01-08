@@ -2,7 +2,7 @@
 
 ## Overview
 
-A Discord bot dashboard application that monitors Discord channels and generates AI-powered daily summaries. The bot watches a configured channel for messages, uses OpenAI to generate concise summaries, and posts them to a designated summary channel. The web dashboard provides real-time monitoring, configuration management, and summary history viewing.
+A Discord bot dashboard application that monitors Discord channels and generates AI-powered daily summaries. The bot watches a configured channel for messages, uses OpenAI to generate concise summaries, and posts them to a designated summary channel. Additionally, the bot can monitor X (Twitter) and Truth Social accounts for new posts and automatically share them to designated Discord channels. The web dashboard provides real-time monitoring, configuration management, summary history viewing, and AutoPost account management.
 
 ## User Preferences
 
@@ -35,9 +35,10 @@ The server uses a storage abstraction pattern (`server/storage.ts`) that interfa
 - **Migrations**: Managed via `drizzle-kit push` command
 
 Core tables:
-- `settings`: Bot configuration (watch/summary channel IDs, active status)
+- `settings`: Bot configuration (watch/summary channel IDs, active status, summary times, AI settings)
 - `summaries`: Generated summary content with timestamps and status
 - `logs`: System logs with level and message
+- `autopost_targets`: AutoPost configuration (platform, handle, interval, channel, announcement template)
 - `conversations`/`messages`: Chat integration tables for AI conversations
 
 ### External Service Integrations

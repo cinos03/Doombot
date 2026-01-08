@@ -1,9 +1,10 @@
 import { db } from "./db";
 import {
-  settings, summaries, logs,
+  settings, summaries, logs, autopostTargets,
   type Settings, type InsertSettings, type UpdateSettingsRequest,
   type Summary, type InsertSummary,
-  type Log, type InsertLog
+  type Log, type InsertLog,
+  type AutopostTarget, type InsertAutopostTarget
 } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 
@@ -16,6 +17,13 @@ export interface IStorage {
   
   getLogs(): Promise<Log[]>;
   createLog(log: InsertLog): Promise<Log>;
+
+  getAutopostTargets(): Promise<AutopostTarget[]>;
+  getAutopostTarget(id: number): Promise<AutopostTarget | undefined>;
+  createAutopostTarget(target: InsertAutopostTarget): Promise<AutopostTarget>;
+  updateAutopostTarget(id: number, target: Partial<InsertAutopostTarget>): Promise<AutopostTarget>;
+  deleteAutopostTarget(id: number): Promise<void>;
+  updateAutopostLastChecked(id: number, lastPostId: string | null): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -64,6 +72,41 @@ export class DatabaseStorage implements IStorage {
   async createLog(log: InsertLog): Promise<Log> {
     const [created] = await db.insert(logs).values(log).returning();
     return created;
+  }
+
+  async getAutopostTargets(): Promise<AutopostTarget[]> {
+    return await db.select().from(autopostTargets).orderBy(desc(autopostTargets.id));
+  }
+
+  async getAutopostTarget(id: number): Promise<AutopostTarget | undefined> {
+    const [target] = await db.select().from(autopostTargets).where(eq(autopostTargets.id, id));
+    return target;
+  }
+
+  async createAutopostTarget(target: InsertAutopostTarget): Promise<AutopostTarget> {
+    const [created] = await db.insert(autopostTargets).values(target).returning();
+    return created;
+  }
+
+  async updateAutopostTarget(id: number, target: Partial<InsertAutopostTarget>): Promise<AutopostTarget> {
+    const [updated] = await db.update(autopostTargets)
+      .set(target)
+      .where(eq(autopostTargets.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteAutopostTarget(id: number): Promise<void> {
+    await db.delete(autopostTargets).where(eq(autopostTargets.id, id));
+  }
+
+  async updateAutopostLastChecked(id: number, lastPostId: string | null): Promise<void> {
+    await db.update(autopostTargets)
+      .set({ 
+        lastPostId: lastPostId,
+        lastCheckedAt: new Date()
+      })
+      .where(eq(autopostTargets.id, id));
   }
 }
 
