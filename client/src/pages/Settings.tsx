@@ -314,7 +314,7 @@ export default function SettingsPage() {
                             />
                           </FormControl>
                           <FormDescription>
-                            The model name to use (e.g., gpt-4o, claude-3-5-sonnet-20241022).
+                            The model name to use (e.g., gpt-4o, claude-sonnet-4-20250514).
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
