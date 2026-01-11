@@ -1,0 +1,30 @@
+Jan 11 06:26:44 gimlet discord-summarizer[153460]: error: relation "autopost_targets" does not exist
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:     at /opt/discord-summarizer/Doombot/dist/index.cjs:64:13326
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:     at async /opt/discord-summarizer/Doombot/dist/index.cjs:70:31389
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:     at async gg.getAutopostTargets (/opt/discord-summarizer/Doombot/dist/index.cjs:70:102133)
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:     at async dM (/opt/discord-summarizer/Doombot/dist/index.cjs:127:910) {
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   length: 116,
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   severity: 'ERROR',
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   code: '42P01',
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   detail: undefined,
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   hint: undefined,
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   position: '188',
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   internalPosition: undefined,
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   internalQuery: undefined,
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   where: undefined,
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   schema: undefined,
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   table: undefined,
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   column: undefined,
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   dataType: undefined,
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   constraint: undefined,
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   file: 'parse_relation.c',
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   line: '1449',
+Jan 11 06:26:44 gimlet discord-summarizer[153460]:   routine: 'parserOpenTable'
+Jan 11 06:26:44 gimlet discord-summarizer[153460]: }
+Jan 11 06:26:44 gimlet discord-summarizer[153460]: Node.js v20.19.6
+Jan 11 06:26:44 gimlet systemd[1]: doombot.service: Main process exited, code=exited, status=1/FAILURE
+Jan 11 06:26:44 gimlet systemd[1]: doombot.service: Failed with result 'exit-code'.
+Jan 11 06:26:44 gimlet systemd[1]: doombot.service: Consumed 1.367s CPU time.
+Jan 11 06:26:54 gimlet systemd[1]: doombot.service: Scheduled restart job, restart counter is at 1.
+Jan 11 06:26:54 gimlet systemd[1]: Started doombot.service - DoomBot.
