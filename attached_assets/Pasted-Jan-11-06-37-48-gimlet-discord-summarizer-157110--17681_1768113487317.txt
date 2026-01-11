@@ -1,0 +1,29 @@
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+Jan 11 06:37:48 gimlet discord-summarizer[157110]: error: permission denied for table autopost_targets
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:     at /opt/discord-summarizer/Doombot/dist/index.cjs:64:13326
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:     at async /opt/discord-summarizer/Doombot/dist/index.cjs:70:31389
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:     at async gg.getAutopostTargets (/opt/discord-summarizer/Doombot/dist/index.cjs:70:102133)
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:     at async dM (/opt/discord-summarizer/Doombot/dist/index.cjs:127:910) {
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   length: 104,
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   severity: 'ERROR',
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   code: '42501',
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   detail: undefined,
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   hint: undefined,
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   position: undefined,
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   internalPosition: undefined,
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   internalQuery: undefined,
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   where: undefined,
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   schema: undefined,
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   table: undefined,
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   column: undefined,
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   dataType: undefined,
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   constraint: undefined,
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   file: 'aclchk.c',
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   line: '2812',
+Jan 11 06:37:48 gimlet discord-summarizer[157110]:   routine: 'aclcheck_error'
+Jan 11 06:37:48 gimlet discord-summarizer[157110]: }
+Jan 11 06:37:48 gimlet discord-summarizer[157110]: Node.js v20.19.6
+Jan 11 06:37:49 gimlet systemd[1]: doombot.service: Main process exited, code=exited, status=1/FAILURE
+Jan 11 06:37:49 gimlet systemd[1]: doombot.service: Failed with result 'exit-code'.
+Jan 11 06:37:49 gimlet systemd[1]: doombot.service: Consumed 1.823s CPU time.
