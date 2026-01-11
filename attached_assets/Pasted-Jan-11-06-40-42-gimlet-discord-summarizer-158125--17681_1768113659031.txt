@@ -1,0 +1,29 @@
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+Jan 11 06:40:42 gimlet discord-summarizer[158125]: error: column "last_run_at" does not exist
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:     at /opt/discord-summarizer/Doombot/dist/index.cjs:64:13326
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:     at async /opt/discord-summarizer/Doombot/dist/index.cjs:70:31389
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:     at async gg.getSettings (/opt/discord-summarizer/Doombot/dist/index.cjs:70:101318)
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:     at async rE (/opt/discord-summarizer/Doombot/dist/index.cjs:123:691) {
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   length: 111,
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   severity: 'ERROR',
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   code: '42703',
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   detail: undefined,
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   hint: undefined,
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   position: '69',
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   internalPosition: undefined,
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   internalQuery: undefined,
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   where: undefined,
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   schema: undefined,
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   table: undefined,
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   column: undefined,
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   dataType: undefined,
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   constraint: undefined,
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   file: 'parse_relation.c',
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   line: '3722',
+Jan 11 06:40:42 gimlet discord-summarizer[158125]:   routine: 'errorMissingColumn'
+Jan 11 06:40:42 gimlet discord-summarizer[158125]: }
+Jan 11 06:40:42 gimlet discord-summarizer[158125]: Node.js v20.19.6
+Jan 11 06:40:42 gimlet systemd[1]: doombot.service: Main process exited, code=exited, status=1/FAILURE
+Jan 11 06:40:42 gimlet systemd[1]: doombot.service: Failed with result 'exit-code'.
+Jan 11 06:40:42 gimlet systemd[1]: doombot.service: Consumed 1.666s CPU time.
