@@ -286,11 +286,12 @@ export default function SettingsPage() {
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="openai">OpenAI (Replit Integration)</SelectItem>
+                              <SelectItem value="anthropic">Anthropic (Claude)</SelectItem>
                               <SelectItem value="custom">Custom/Local Server</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormDescription>
-                            For Replit's built-in OpenAI, select "OpenAI".
+                            For OpenAI, select "OpenAI". For Claude, select "Anthropic (Claude)" and set ANTHROPIC_API_KEY environment variable.
                             For a local server (Ollama, llama.cpp, etc.), select "Custom" and set CUSTOM_AI_BASE_URL and CUSTOM_AI_API_KEY environment variables.
                           </FormDescription>
                           <FormMessage />
