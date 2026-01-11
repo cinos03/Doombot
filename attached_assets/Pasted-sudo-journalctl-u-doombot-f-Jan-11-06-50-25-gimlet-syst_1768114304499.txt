@@ -1,0 +1,16 @@
+sudo journalctl -u doombot -f
+Jan 11 06:50:25 gimlet systemd[1]: doombot.service: Consumed 2.495s CPU time.
+Jan 11 06:50:35 gimlet systemd[1]: doombot.service: Scheduled restart job, restart counter is at 4.
+Jan 11 06:50:35 gimlet systemd[1]: Started doombot.service - DoomBot.
+Jan 11 06:50:38 gimlet discord-summarizer[161112]: 6:50:38 AM [express] serving on port 5000
+Jan 11 06:50:38 gimlet discord-summarizer[161112]: Scheduling summary at 20:00 (cron: 0 20 * * *)
+Jan 11 06:50:39 gimlet discord-summarizer[161112]: Logged in as Doombot#9159!
+Jan 11 06:50:39 gimlet discord-summarizer[161112]: Bot is currently in these servers:
+Jan 11 06:50:39 gimlet discord-summarizer[161112]: - Doomscroll HQ (ID: 1458586293104803842)
+Jan 11 06:50:39 gimlet discord-summarizer[161112]: (node:161112) DeprecationWarning: The ready event has been renamed to clientReady to distinguish it from the gateway READY event and will only emit under that name in v15. Please use clientReady instead.
+Jan 11 06:50:39 gimlet discord-summarizer[161112]: (Use `node --trace-deprecation ...` to show where the warning was created)
+Jan 11 06:51:06 gimlet discord-summarizer[161112]: 6:51:06 AM [express] GET /api/logs 200 in 37ms :: [{"id":4,"level":"info","message":"Discord bot logged in as Doombot#9159","timestamp":"2026-01-11T06:50:39.278Z"},{"id":3,"level":"info","message":"Discord bot logged in as Doombot#9159","timestamp":"2026-01-11T06:49:27.103Z"},{"id":2,"level":"info","message":"Discord bot logged in as Doombot#9159","timestamp":"2026-01-11T06:48:39.316Z"},{"id":1,"level":"info","message":"Discord bot logged in as Doombot#9159","timestamp":"2026-01-11T06:47:53.483Z"}]
+Jan 11 06:51:09 gimlet discord-summarizer[161112]: 6:51:09 AM [express] GET /api/usage 500 in 7ms :: {"message":"column \"last_updated\" does not exist"}
+Jan 11 06:51:16 gimlet discord-summarizer[161112]: Scheduling summary at 20:00 (cron: 0 20 * * *)
+Jan 11 06:51:16 gimlet discord-summarizer[161112]: 6:51:16 AM [express] POST /api/settings 200 in 69ms :: {"id":1,"watchChannelId":"","summaryChannelId":"","isActive":true,"lastRunAt":null,"summaryTimes":["20:00"],"aiProvider":"openai","aiModel":"gpt-4o","xBearerToken":"","twitterApiIoKey":""}
+Jan 11 06:51:16 gimlet discord-summarizer[161112]: 6:51:16 AM [express] GET /api/settings 200 in 5ms :: {"id":1,"watchChannelId":"","summaryChannelId":"","isActive":true,"lastRunAt":null,"summaryTimes":["20:00"],"aiProvider":"openai","aiModel":"gpt-4o","xBearerToken":"","twitterApiIoKey":""}
