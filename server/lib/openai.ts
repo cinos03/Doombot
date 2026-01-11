@@ -1,6 +1,7 @@
 import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 
-function getAIClient(provider: string = "openai") {
+function getOpenAIClient(provider: string = "openai") {
   if (provider === "custom") {
     return new OpenAI({
       apiKey: process.env.CUSTOM_AI_API_KEY || "not-needed",
@@ -11,6 +12,12 @@ function getAIClient(provider: string = "openai") {
   return new OpenAI({
     apiKey: process.env.CUSTOM_OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
     baseURL: process.env.CUSTOM_OPENAI_BASE_URL || process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  });
+}
+
+function getAnthropicClient() {
+  return new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY,
   });
 }
 
@@ -27,7 +34,6 @@ export async function generateSummary(
     return "No messages found to summarize for today.";
   }
 
-  // Format messages for the prompt
   const formattedMessages = messages
     .sort((a, b) => a.timestamp - b.timestamp)
     .map(m => `[${new Date(m.timestamp).toLocaleTimeString()}] ${m.author}: ${m.content}`)
@@ -57,20 +63,34 @@ export async function generateSummary(
     - IMPORTANT: For every X (Twitter) post summarized, you MUST include the original link at the end of that bullet point. To prevent Discord from creating a thumbnail/embed for these links, wrap them in angle brackets like this: <https://x.com/username/status/12345>.
   `;
 
+  const provider = aiSettings?.aiProvider || "openai";
+  const model = aiSettings?.aiModel || "gpt-4o";
+
   try {
-    const provider = aiSettings?.aiProvider || "openai";
-    const model = aiSettings?.aiModel || "gpt-4o";
-    const client = getAIClient(provider);
+    if (provider === "anthropic") {
+      const client = getAnthropicClient();
+      const response = await client.messages.create({
+        model: model || "claude-3-5-sonnet-20241022",
+        max_tokens: 4096,
+        messages: [
+          { role: "user", content: prompt }
+        ],
+      });
 
-    const response = await client.chat.completions.create({
-      model: model,
-      messages: [
-        { role: "system", content: "You are a helpful assistant." },
-        { role: "user", content: prompt }
-      ],
-    });
+      const textContent = response.content.find(block => block.type === "text");
+      return textContent?.text || "Failed to generate summary.";
+    } else {
+      const client = getOpenAIClient(provider);
+      const response = await client.chat.completions.create({
+        model: model,
+        messages: [
+          { role: "system", content: "You are a helpful assistant." },
+          { role: "user", content: prompt }
+        ],
+      });
 
-    return response.choices[0].message.content || "Failed to generate summary.";
+      return response.choices[0].message.content || "Failed to generate summary.";
+    }
   } catch (error: any) {
     console.error("AI Error:", error);
     throw new Error(`Failed to generate summary: ${error.message}`);
